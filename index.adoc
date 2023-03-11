@@ -1,0 +1,99 @@
+= Example X.509 Server
+:toc:
+:sectnums:
+
+== Synopsis
+
+In a nutshell, certificate-based authentication (CBA) uses a digital certificate derived from cryptography to identify a user, device or machine, before granting access to an application, network or other resource. Unlike some authentication solutions that are targeted at humans, such as one time passwords (OTP) and biometrics, certificate-based authentication can be adopted for all endpoints, including servers, personal computers, e-passports and literally anything that may be classified under the Internet of Things (IoT).
+
+Since the digital certificate resides on an individual's device or computer alongside the private key, it enables the user's browser or client to log into various systems automatically without much additional effort from the user, since it can simply be presented when requested.
+
+In general, client certificate-based authentication and other methods where the secret is never exposed to even the user, is preferable to password-based authentication. Username and password authentication is based only on what the user knows (the password), but certificate-based client authentication also leverages what the user has (the private key), which cannot be phished, guessed or socially engineered.
+
+But it is also important to highlight some of the conditions that help to maintain this level of control:
+
+* no unauthorized users have gained access to the private-key underlying the digital certificate
+* the lifecycle of distributed certificates is properly managed, including registration, renewal and revocation
+* the proper infrastructure is set up to support the sending and validation of certificates
+
+Users must be especially vigilant in protecting private keys in addition to the physical security of their devices generally speaking, but parties responsible for the infrastructure to support CBA also have their part to play in the process.
+
+A digital certificate contains a number of important details, depending on the standard in use. For example, the popular X.509 certificate includes the below elements:
+
+* The public key
+* The user or device's name
+* The name of the Certificate Authority (CA) that issued the certificate
+* The date from which the certificate is valid
+* The expiry date of the certificate
+* The version number of the certificate data
+* A serial number
+
+== Certificate
+
+[source,bash]
+----
+# create self-signed root CA
+openssl req -x509 -sha256 -days 365 -newkey rsa:4096 -keyout rootCA.key -out rootCA.crt
+
+----
+
+.Server side
+[source,bash]
+----
+#!/bin/bash
+openssl genrsa -out ssl/private.key 4096
+
+# Create CSR
+openssl req -new -key ssl/private.key -out ssl/private.csr -nodes -subj "/C=NL/ST=Ge;der;amd/L=Ede/O=x509-server/OU=Development/CN=localhost1"
+
+# Create self-signed certificate
+openssl x509 -signkey ssl/private.key -in ssl/private.csr -req -days 365 -out ssl/private.crt
+
+# Store self-sign certificate and private key an in a PKCS12 keystore
+openssl pkcs12 -export -out ssl/keystore.p12 -inkey ssl/private.key -in ssl/private.crt -password pass:changeit
+
+# Store certificate
+keytool -import -trustcacerts -alias root -file ssl/private.crt -keystore ssl/truststore.jks -storepass changeit -noprompt
+----
+
+.Client side localhost1
+[source,bash]
+----
+#!/bin/bash
+# Create private key
+openssl genrsa -out ssl-client/localhost1.key 4096
+
+# Create CSR
+openssl req -new -key ssl-client/localhost1.key -out ssl-client/localhost1.csr -nodes -subj "/C=NL/ST=Gelderland/L=Arnhem/O=x509-client/OU=Development/CN=localhost1"
+
+# Sign client's CSR with server private key and server certificate
+openssl x509 -req -days 360 -in ssl-client/localhost1.csr -CA ssl/private.crt -CAkey ssl/private.key \
+-CAcreateserial -out ssl-client/localhost1.crt -sha256
+
+# Store private key and the obtained certificate in PKCS12 keystore
+openssl pkcs12 -export -out ssl-client/localhost1.p12 -inkey ssl-client/localhost1.key -in ssl-client/localhost1.crt -certfile ssl/private.crt -password pass:localhost1
+----
+
+.Client side localhost2
+[source,bash]
+----
+#!/bin/bash
+# Create private key
+openssl genrsa -out ssl-client/localhost2.key 4096
+
+# Create a certificate signing request (CSR)
+openssl req -new -key ssl-client/localhost2.key -out ssl-client/localhost2.csr -nodes -subj "/C=NL/ST=Gelderland/L=Arnhem/O=x509-client/OU=Development/CN=localhost2"
+
+# Sign client's CSR with server private key and server certificate
+openssl x509 -req -days 360 -in ssl-client/localhost2.csr -CA ssl/private.crt -CAkey ssl/private.key \
+-CAcreateserial -out ssl-client/localhost2.crt -sha256
+
+# Store private key and the obtained certificate in a PKCS12 keystore
+openssl pkcs12 -export -out ssl-client/localhost2.p12 -inkey ssl-client/localhost2.key -in ssl-client/localhost2.crt -certfile ssl/private.crt -password pass:localhost2
+----
+
+.Testing
+[source,bash]
+----
+curl --insecure --cert-type P12 --cert ssl-client/localhost1.p12:localhost1 https://localhost:8443/api/admin
+----
