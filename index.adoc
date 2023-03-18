@@ -98,3 +98,7 @@ openssl pkcs12 -export -out ssl-client/localhost2.p12 -inkey ssl-client/localhos
 ----
 curl --insecure --cert-type P12 --cert ssl-client/localhost1.p12:localhost1 https://localhost:8443/api/admin
 ----
+
+== Swapping
+
+use https://github.com/Hakky54/sslcontext-kickstart
