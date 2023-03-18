@@ -15,10 +15,18 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.80.Final:osx-aarch_64'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
+	testImplementation 'org.apache.httpcomponents:httpclient:4.5.14'
+	testImplementation 'io.projectreactor.netty:reactor-netty-http:1.1.4'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	testLogging {
+		events "passed", "skipped", "failed"
+	}
 }

@@ -9,17 +9,17 @@ public class X509Controller {
 
     @RequestMapping("/hello")
     public String hello() {
-        return "Hello World\n";
+        return "Hello World";
     }
 
     @RequestMapping("/secured")
     public String protectedHello() {
-        return "Protected content!\n";
+        return "Protected content!";
     }
 
     @RequestMapping("/admin")
     public String admin() {
-        return "Admin content!\n";
+        return "Admin content!";
     }
 
 }

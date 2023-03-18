@@ -64,7 +64,8 @@ keytool -import -trustcacerts -alias root -file ssl/private.crt -keystore ssl/tr
 openssl genrsa -out ssl-client/localhost1.key 4096
 
 # Create CSR
-openssl req -new -key ssl-client/localhost1.key -out ssl-client/localhost1.csr -nodes -subj "/C=NL/ST=Gelderland/L=Arnhem/O=x509-client/OU=Development/CN=localhost1"
+openssl req -new -key ssl-client/localhost1.key -out ssl-client/localhost1.csr -nodes -subj "/C=NL/ST=Gelderland/L=Arnhem/O=x509-client/OU=Development/CN=localhost1" -addext "subjectAltName=DNS:localhost"
+
 
 # Sign client's CSR with server private key and server certificate
 openssl x509 -req -days 360 -in ssl-client/localhost1.csr -CA ssl/private.crt -CAkey ssl/private.key \
