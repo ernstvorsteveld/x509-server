@@ -21,6 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation "org.springframework.boot:spring-boot-starter-jetty"
 	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.80.Final:osx-aarch_64'
+	implementation 'io.github.hakky54:sslcontext-kickstart-for-jetty:7.4.11'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
