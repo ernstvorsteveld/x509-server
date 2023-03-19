@@ -29,7 +29,7 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return (UserDetailsService) cn -> {
+        return cn -> {
             if (cn.equals("localhost1")) {
                 return new User(cn, "", AuthorityUtils.commaSeparatedStringToAuthorityList("ROLE_User, ROLE_Admin"));
             } else if (cn.equals("localhost2")) {
